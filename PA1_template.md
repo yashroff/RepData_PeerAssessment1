@@ -41,37 +41,10 @@ dataset.date<-as.Date(dataset$date)
 ds2<-group_by(dataset,date)
 totalSteps<-summarize(ds2,sum(steps,na.rm=TRUE))
 colnames(totalSteps)<-c("date","steps")
-hg<-hist(totalSteps$steps,xlab="total steps taken per day",main="total number of steps taken per day")
+hist(totalSteps$steps,xlab="total steps taken per day",main="total number of steps taken per day")
 ```
 
 ![](PA1_template_files/figure-html/mean_total_steps_per_day-1.png) 
-
-```r
-hg
-```
-
-```
-## $breaks
-## [1]     0  5000 10000 15000 20000 25000
-## 
-## $counts
-## [1] 13 12 28  6  2
-## 
-## $density
-## [1] 4.262295e-05 3.934426e-05 9.180328e-05 1.967213e-05 6.557377e-06
-## 
-## $mids
-## [1]  2500  7500 12500 17500 22500
-## 
-## $xname
-## [1] "totalSteps$steps"
-## 
-## $equidist
-## [1] TRUE
-## 
-## attr(,"class")
-## [1] "histogram"
-```
 
 ```r
 meanSteps<-mean(totalSteps$steps,na.rm=TRUE)
@@ -81,7 +54,6 @@ meanSteps
 ```
 ## [1] 9354.23
 ```
-[1] 9354.23
 
 ```r
 medianSteps<-median(totalSteps$steps,na.rm=TRUE)
@@ -91,7 +63,6 @@ medianSteps
 ```
 ## [1] 10395
 ```
-[1] 10395
 
 ## What is the average daily activity pattern?
 
