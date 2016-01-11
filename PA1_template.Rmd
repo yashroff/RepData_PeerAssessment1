@@ -8,6 +8,8 @@ output:
 
 ## Loading and preprocessing the data
 ```{r load_preprocess, echo=TRUE}
+require(ggplot2)
+require(dplyr)
 dataset<-read.csv("activity.csv",header=TRUE)
 dataset.date<-as.Date(dataset$date)
 ```
@@ -21,13 +23,79 @@ colnames(totalSteps)<-c("date","steps")
 hist(totalSteps$steps,xlab="total steps taken per day",main="total number of steps taken per day")
 
 meanSteps<-mean(totalSteps$steps,na.rm=TRUE)
+meanSteps
 medianSteps<-median(totalSteps$steps,na.rm=TRUE)
+medianSteps
+```
+
 ## What is the average daily activity pattern?
+```{r avg_daily_pattern, echo=TRUE}
+ds3<-group_by(na.omit(dataset),interval)
+avgSteps<-summarize(ds3,mean(steps))
+colnames(avgSteps)<-c("interval","avgSteps")
+plot(avgSteps,type="l",xlab="5-minute interval",ylab="Average steps taken",main="average number of steps taken")
 
-
-
+maxSteps<-max(avgSteps$avgSteps)
+maxSteps
+maxStepsInterval<-avgSteps[avgSteps$avgSteps==maxSteps,1]
+maxStepsInterval
+```
 ## Imputing missing values
+```{r imputing_missing_values, echo=TRUE}
+#naList<-which(is.na(dataset)==TRUE) 
+naList<-is.na(dataset)
+numNA<-length(naList)
+```
+number of missing values:
+```{r echo=TRUE}
+numNA
+```
+fill in missing values with interval averages.
+```{r echo=TRUE}
+ getIntervalAvg <- function(intrvl,stps) {
+   if (is.na(stps)) as.numeric(avgSteps[avgSteps$interval==intrvl,2]) else stps
+ }
 
+filled<-dataset
+filled$steps<-mapply(getIntervalAvg,filled$interval,filled$steps)
+```
+calculate average steps taken each day, with missing data filled in
+```{r echo=TRUE}
+ds4<-group_by(filled,date)
+totalSteps<-summarize(ds4,sum(steps))
+colnames(totalSteps)<-c("date","steps")
+hist(totalSteps$steps,xlab="total steps taken per day",main="total number of steps taken per day: with missing data imputed")
 
+meanSteps<-mean(totalSteps$steps,na.rm=TRUE)
+meanSteps
+medianSteps<-median(totalSteps$steps,na.rm=TRUE)
+medianSteps
+
+```
+Mean and median are higher than they were before imputing missing data. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+populate weekday factor:
+```{r echo=TRUE}
+ getweekendweekday <- function(dt) {
+   if (weekdays(dt) %in% c("Sunday","Saturday")) return ("weekend") else return("weekday")
+ }
+
+filled$date<-as.Date(filled$date)
+filled$weekday<-sapply(filled$date,getweekendweekday)
+filled$weekday<-as.factor(filled$weekday)
+
+```
+create a plot
+```{r echo=TRUE}
+ds5<-group_by(filled,interval,weekday)
+
+avgStepsWeekday<-summarize(ds5,mean(steps))
+colnames(avgStepsWeekday)<-c("interval","weekday","steps")
+
+g <- ggplot (avgStepsWeekday, aes(interval,steps))
+p<- g + geom_line() + facet_grid(weekday ~ .) + labs (title="Average steps on weekends and weekdays") + labs (y="steps", x="interval")
+print(p)
+
+```
